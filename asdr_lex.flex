@@ -1,46 +1,41 @@
 %%
 
-%{
-  private AsdrSample yyparser;
-
-  public Yylex(java.io.Reader r, AsdrSample yyparser) {
-    this(r);
-    this.yyparser = yyparser;
-  }
-
-
-%} 
-
+%class Yylex
 %integer
 %line
 %char
+%unicode
+%type int
+%eofval{
+  return ASDRSintatico.EOF;
+%eofval}
 
-WHITE_SPACE_CHAR=[\n\r\ \t\b\012]
+%{
+  private ASDRSintatico yyparser;
+
+  public Yylex(java.io.Reader r, ASDRSintatico yyparser) {
+    this(r);
+    this.yyparser = yyparser;
+  }
+%}
 
 %%
 
-"$TRACE_ON"   { yyparser.setDebug(true); }
-"$TRACE_OFF"  { yyparser.setDebug(false); }
+[ \t\r\n\f]    { }
 
-"while"	 	{ return AsdrSample.WHILE; }
-"if"		{ return AsdrSample.IF; }
-"else"		{ return AsdrSample.ELSE; }
-"fi"		{ return AsdrSample.FI; }
+\$TRACE_ON     { yyparser.setDebug(true); }
+\$TRACE_OFF    { yyparser.setDebug(false); }
 
-[:jletter:][:jletterdigit:]* { return AsdrSample.IDENT; }  
+SELECT         { return ASDRSintatico.SELECT; }
+FROM           { return ASDRSintatico.FROM; }
+WHERE          { return ASDRSintatico.WHERE; }
 
-[0-9]+ 	{ return AsdrSample.NUM; }
+","            { return ASDRSintatico.VIRGULA; }
+";"            { return ASDRSintatico.PONTO_VIRGULA; }
+"*"            { return ASDRSintatico.ASTERISCO; }
+"&&"           { return ASDRSintatico.E_COMERCIAL; }
 
-"{" |
-"}" |
-";" |
-"(" |
-")" |
-"+" |
-"-" |
-"="    	{ return yytext().charAt(0); } 
+[a-zA-Z][a-zA-Z0-9]*  { return ASDRSintatico.IDENTIFICADOR; }
+'[^']*'               { return ASDRSintatico.STRING; }
 
-
-{WHITE_SPACE_CHAR}+ { }
-
-. { System.out.println("Erro lexico: caracter invalido: <" + yytext() + ">"); }
+.              { System.out.println("Erro lexico: caracter invalido: <" + yytext() + ">"); return -1; }
